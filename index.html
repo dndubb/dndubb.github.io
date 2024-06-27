@@ -29,7 +29,7 @@ function init() {
 
   // Load landscape texture
   const textureLoader = new THREE.TextureLoader();
-  const landscapeTexture = textureLoader.load('photo1.jpg', () => {
+  const landscapeTexture = textureLoader.load('dndubb.github.io/photo1.jpg', () => {
     const landscapeGeometry = new THREE.SphereGeometry(500, 60, 40);
     landscapeGeometry.scale(-1, 1, 1);
     const landscapeMaterial = new THREE.MeshBasicMaterial({ map: landscapeTexture });
@@ -38,7 +38,7 @@ function init() {
   });
 
   // Load cube texture
-  const cubeTexture = textureLoader.load('photo2.jpg', () => {
+  const cubeTexture = textureLoader.load('dndubb.github.io/photo2.jpg', () => {
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
     const cubeMaterial = new THREE.MeshBasicMaterial({ map: cubeTexture });
     
