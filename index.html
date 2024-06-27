@@ -1,19 +1,22 @@
-<html><head><base href="https://websim.ai/c/3d-photo-world" />
-<title>3D Photo World Creator</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<style>
-  body { margin: 0; overflow: hidden; }
-  canvas { width: 100%; height: 100% }
-  #info {
-    position: absolute;
-    top: 10px;
-    width: 100%;
-    text-align: center;
-    color: white;
-    font-family: Arial, sans-serif;
-    pointer-events: none;
-  }
-</style>
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="https://websim.ai/c/3d-photo-world" />
+  <title>3D Photo World Creator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { width: 100%; height: 100% }
+    #info {
+      position: absolute;
+      top: 10px;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      pointer-events: none;
+    }
+  </style>
 </head>
 <body>
 <div id="info">3D Photo World Creator<br>Landscape from photo1.jpg, Rotating cubes from photo2.jpg</div>
@@ -29,19 +32,23 @@ function init() {
 
   // Load landscape texture
   const textureLoader = new THREE.TextureLoader();
-  const landscapeTexture = textureLoader.load('photo1.jpg', () => {
-    const landscapeGeometry = new THREE.SphereGeometry(500, 60, 40);
-    landscapeGeometry.scale(-1, 1, 1);
+  textureLoader.load('photo1.jpg', (landscapeTexture) => {
+    const landscapeGeometry = new THREE.PlaneGeometry(100, 100);
     const landscapeMaterial = new THREE.MeshBasicMaterial({ map: landscapeTexture });
     const landscapeMesh = new THREE.Mesh(landscapeGeometry, landscapeMaterial);
+    landscapeMesh.position.set(0, -50, -100); // Adjust position as needed
+    landscapeMesh.rotation.x = -Math.PI / 2; // Rotate to lay flat
     scene.add(landscapeMesh);
+    console.log('Landscape texture loaded');
+  }, undefined, (err) => {
+    console.error('Error loading landscape texture:', err);
   });
 
   // Load cube texture
-  const cubeTexture = textureLoader.load('photo2.jpg', () => {
+  textureLoader.load('photo2.jpg', (cubeTexture) => {
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
     const cubeMaterial = new THREE.MeshBasicMaterial({ map: cubeTexture });
-    
+
     for (let i = 0; i < 5; i++) {
       const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
       cube.position.set(
@@ -52,9 +59,12 @@ function init() {
       scene.add(cube);
       cubes.push(cube);
     }
+    console.log('Cube texture loaded');
+  }, undefined, (err) => {
+    console.error('Error loading cube texture:', err);
   });
 
-  camera.position.z = 5;
+  camera.position.z = 10;
 
   window.addEventListener('resize', onWindowResize, false);
 }
@@ -79,4 +89,5 @@ function animate() {
 init();
 animate();
 </script>
-</body></html>
+</body>
+</html>
