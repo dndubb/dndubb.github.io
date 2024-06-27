@@ -1,85 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rotating Cubes</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        #background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('photo1.jpg');
-            background-size: cover;
-            z-index: -1;
-        }
-
-        #cube-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-    </style>
+<html><head><base href="https://websim.ai" />
+<title>Reactive 3D Cubes</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  body { margin: 0; overflow: hidden; }
+  #info {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-family: Arial, sans-serif;
+    pointer-events: none;
+  }
+</style>
 </head>
 <body>
-    <div id="background"></div>
-    <div id="cube-container"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        // Set up the scene, camera, and renderer
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('cube-container').appendChild(renderer.domElement);
+<div id="info">Click to start audio capture<br>Speak or make noise to see the cubes react!</div>
+<script>
+let scene, camera, renderer, cubes = [];
+let analyser, dataArray;
+let microphoneStream;
 
-        // Add lights
-        const light = new THREE.AmbientLight(0x404040);
-        scene.add(light);
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 5, 5).normalize();
-        scene.add(directionalLight);
+function init() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-        // Load the texture
-        const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load('photo2.jpg');
+  const textureLoader = new THREE.TextureLoader();
+  const texture = textureLoader.load('photo2.jpg');
+  
+  for(let i = 0; i < 5; i++) {
+    const geometry = new THREE.BoxGeometry(1, 1, 1);
+    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const cube = new THREE.Mesh(geometry, material);
+    cube.position.set(
+      Math.random() * 4 - 2,
+      Math.random() * 4 - 2,
+      Math.random() * 4 - 2
+    );
+    scene.add(cube);
+    cubes.push(cube);
+  }
 
-        // Create the cubes
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial({ map: texture });
-        const cubes = [];
+  camera.position.z = 5;
+}
 
-        for (let i = 0; i < 5; i++) {
-            const cube = new THREE.Mesh(geometry, material);
-            cube.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2);
-            scene.add(cube);
-            cubes.push(cube);
-        }
+function animate() {
+  requestAnimationFrame(animate);
 
-        camera.position.z = 5;
+  if (analyser) {
+    analyser.getByteFrequencyData(dataArray);
+    let sum = dataArray.reduce((a, b) => a + b, 0);
+    let avg = sum / dataArray.length;
 
-        // Animation loop
-        function animate() {
-            requestAnimationFrame(animate);
+    cubes.forEach(cube => {
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      cube.scale.setScalar(1 + avg / 128);
+    });
 
-            cubes.forEach(cube => {
-                cube.rotation.x += 0.01;
-                cube.rotation.y += 0.01;
-            });
+    if (avg > 10) {
+      scene.background = new THREE.Color(Math.random(), Math.random(), Math.random());
+    }
+  }
 
-            renderer.render(scene, camera);
-        }
+  renderer.render(scene, camera);
+}
 
-        animate();
-    </script>
-</body>
-</html>
+function setupAudio() {
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    .then(stream => {
+      microphoneStream = stream;
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      analyser.fftSize = 256;
+      const bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+    })
+    .catch(err => console.error('Error accessing microphone:', err));
+}
+
+init();
+animate();
+
+document.body.addEventListener('click', () => {
+  if (!microphoneStream) setupAudio();
+});
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body></html>
