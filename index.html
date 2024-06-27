@@ -16,7 +16,7 @@
 </style>
 </head>
 <body>
-<div id="info">3D Photo World Creator<br>Landscape from photo1.jpeg, Rotating cubes from photo2.jpeg</div>
+<div id="info">3D Photo World Creator<br>Landscape from photo1.jpg, Rotating cubes from photo2.jpg</div>
 <script>
 let scene, camera, renderer, cubes = [];
 
@@ -29,7 +29,7 @@ function init() {
 
   // Load landscape texture
   const textureLoader = new THREE.TextureLoader();
-  const landscapeTexture = textureLoader.load('photo1.jpeg', () => {
+  const landscapeTexture = textureLoader.load('photo1.jpg', () => {
     const landscapeGeometry = new THREE.SphereGeometry(500, 60, 40);
     landscapeGeometry.scale(-1, 1, 1);
     const landscapeMaterial = new THREE.MeshBasicMaterial({ map: landscapeTexture });
@@ -38,7 +38,7 @@ function init() {
   });
 
   // Load cube texture
-  const cubeTexture = textureLoader.load('photo2.jpeg', () => {
+  const cubeTexture = textureLoader.load('photo2.jpg', () => {
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
     const cubeMaterial = new THREE.MeshBasicMaterial({ map: cubeTexture });
     
