@@ -1,82 +1,85 @@
-<html><head><base href="https://websim.ai/c/3d-photo-world" />
-<title>3D Photo World Creator</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<style>
-  body { margin: 0; overflow: hidden; }
-  canvas { width: 100%; height: 100% }
-  #info {
-    position: absolute;
-    top: 10px;
-    width: 100%;
-    text-align: center;
-    color: white;
-    font-family: Arial, sans-serif;
-    pointer-events: none;
-  }
-</style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotating Cubes</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('photo1.jpg');
+            background-size: cover;
+            z-index: -1;
+        }
+
+        #cube-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
-<div id="info">3D Photo World Creator<br>Landscape from photo1.jpg, Rotating cubes from photo2.jpg</div>
-<script>
-let scene, camera, renderer, cubes = [];
+    <div id="background"></div>
+    <div id="cube-container"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('cube-container').appendChild(renderer.domElement);
 
-function init() {
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(2000, window.innerWidth / window.innerHeight, 0.1, 1000);
-  renderer = new THREE.WebGLRenderer();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+        // Add lights
+        const light = new THREE.AmbientLight(0x404040);
+        scene.add(light);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 5, 5).normalize();
+        scene.add(directionalLight);
 
-  // Load landscape texture
-  const textureLoader = new THREE.TextureLoader();
-  const landscapeTexture = textureLoader.load('https://dndubb.github.io/photo1.jpg', () => {
-    const landscapeGeometry = new THREE.SphereGeometry(50, 60, 40);
-    landscapeGeometry.scale(-1, 1, 1);
-    const landscapeMaterial = new THREE.MeshBasicMaterial({ map: landscapeTexture });
-    const landscapeMesh = new THREE.Mesh(landscapeGeometry, landscapeMaterial);
-    scene.add(landscapeMesh);
-  });
+        // Load the texture
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load('photo2.jpg');
 
-  // Load cube texture
-  const cubeTexture = textureLoader.load('https://dndubb.github.io/photo2.jpg', () => {
-    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const cubeMaterial = new THREE.MeshBasicMaterial({ map: cubeTexture });
-    
-    for (let i = 0; i < 5; i++) {
-      const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-      cube.position.set(
-        Math.random() * 8 - 4,
-        Math.random() * 8 - 4,
-        Math.random() * 8 - 4
-      );
-      scene.add(cube);
-      cubes.push(cube);
-    }
-  });
+        // Create the cubes
+        const geometry = new THREE.BoxGeometry();
+        const material = new THREE.MeshBasicMaterial({ map: texture });
+        const cubes = [];
 
-  camera.position.z = 5;
+        for (let i = 0; i < 5; i++) {
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(Math.random() * 4 - 2, Math.random() * 4 - 2, Math.random() * 4 - 2);
+            scene.add(cube);
+            cubes.push(cube);
+        }
 
-  window.addEventListener('resize', onWindowResize, false);
-}
+        camera.position.z = 5;
 
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
 
-function animate() {
-  requestAnimationFrame(animate);
+            cubes.forEach(cube => {
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+            });
 
-  cubes.forEach(cube => {
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-  });
+            renderer.render(scene, camera);
+        }
 
-  renderer.render(scene, camera);
-}
-
-init();
-animate();
-</script>
-</body></html>
+        animate();
+    </script>
+</body>
+</html>
