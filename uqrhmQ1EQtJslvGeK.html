@@ -1,0 +1,105 @@
+<html><head><base href="https://websim.ai" />
+<title>3D Image Wrapper - WebSim.ai</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+  #canvas { width: 100%; height: 100vh; }
+  #controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255,255,255,0.7);
+    padding: 10px;
+    border-radius: 5px;
+  }
+  input[type="file"] { margin-bottom: 10px; }
+</style>
+</head>
+<body>
+  <div id="controls">
+    <input type="file" id="imageUpload" accept="image/*">
+    <br>
+    <label>
+      <input type="radio" name="shape" value="cube" checked> Cube
+    </label>
+    <label>
+      <input type="radio" name="shape" value="sphere"> Sphere
+    </label>
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    let scene, camera, renderer, cube, sphere, texture;
+
+    function init() {
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas') });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+      sphere = new THREE.Mesh(sphereGeometry, material);
+      scene.add(sphere);
+
+      sphere.visible = false;
+
+      camera.position.z = 2;
+
+      animate();
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      sphere.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        texture = new THREE.TextureLoader().load(e.target.result);
+        updateTexture();
+      }
+
+      reader.readAsDataURL(file);
+    }
+
+    function updateTexture() {
+      const material = new THREE.MeshBasicMaterial({ map: texture });
+      cube.material = material;
+      sphere.material = material;
+    }
+
+    function handleShapeChange(event) {
+      if (event.target.value === 'cube') {
+        cube.visible = true;
+        sphere.visible = false;
+      } else {
+        cube.visible = false;
+        sphere.visible = true;
+      }
+    }
+
+    init();
+
+    document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+    document.querySelectorAll('input[name="shape"]').forEach(radio => {
+      radio.addEventListener('change', handleShapeChange);
+    });
+
+    window.addEventListener('resize', function() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body></html>
